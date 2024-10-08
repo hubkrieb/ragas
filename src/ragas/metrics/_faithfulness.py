@@ -240,7 +240,7 @@ class Faithfulness(MetricWithLLM, SingleTurnMetric):
             logger.warning("No statements were generated from the answer.")
             score = np.nan
 
-        return score
+        return score, {"faithfulness_statements": [answer['statement'] for answer in answers.model_dump()]}
 
     async def _single_turn_ascore(
         self, sample: SingleTurnSample, callbacks: Callbacks

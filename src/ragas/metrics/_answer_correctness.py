@@ -220,8 +220,8 @@ class AnswerCorrectness(MetricWithLLM, MetricWithEmbeddings, SingleTurnMetric):
         self: t.Self, sample: SingleTurnSample, callbacks: Callbacks
     ) -> float:
         row = sample.to_dict()
-        score = await self._ascore(row, callbacks)
-        return score
+        score, additional_info = await self._ascore(row, callbacks)
+        return score, additional_info
 
     async def _ascore(self, row: t.Dict, callbacks: Callbacks) -> float:
         assert self.llm is not None, "LLM must be set"
@@ -284,7 +284,7 @@ class AnswerCorrectness(MetricWithLLM, MetricWithEmbeddings, SingleTurnMetric):
             weights=self.weights,
         )
 
-        return float(score)
+        return float(score), {"answer_correctness_ground_truth_statements": ground_truth, "answer_correctness_answer_statements": answer}
 
     def adapt(self, language: str, cache_dir: t.Optional[str] = None) -> None:
         assert self.llm is not None, "llm must be set to compute score"

@@ -293,6 +293,11 @@ def evaluate(
     try:
         # get the results
         results = executor.results()
+        if isinstance(results, list) and all(isinstance(item, tuple) for item in results):
+            additional_info = [result[1] for result in results]
+            results = [result[0] for result in results]
+        else:
+            additional_info = None
         if results == []:
             raise ExceptionInRunner()
 
@@ -324,6 +329,7 @@ def evaluate(
         cost_cb = ragas_callbacks["cost_cb"] if "cost_cb" in ragas_callbacks else None
         result = Result(
             scores=Dataset.from_list(scores),
+            additional_info=Dataset.from_list(additional_info) if additional_info is not None else None,
             dataset=dataset,
             binary_columns=binary_metrics,
             cost_cb=t.cast(
@@ -382,6 +388,7 @@ class Result(dict):
     """
 
     scores: Dataset
+    additional_info: t.Optional[Dataset] = None
     dataset: t.Optional[Dataset] = None
     binary_columns: t.List[str] = field(default_factory=list)
     cost_cb: t.Optional[CostCallbackHandler] = None
@@ -419,7 +426,10 @@ class Result(dict):
         if self.dataset is None:
             raise ValueError("dataset is not provided for the results class")
         assert self.scores.shape[0] == self.dataset.shape[0]
-        result_ds = concatenate_datasets([self.dataset, self.scores], axis=1)
+        if self.additional_info is not None:
+            result_ds = concatenate_datasets([self.dataset, self.additional_info, self.scores], axis=1)
+        else:
+            result_ds = concatenate_datasets([self.dataset, self.scores], axis=1)
 
         return result_ds.to_pandas(batch_size=batch_size, batched=batched)
 
