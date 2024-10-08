@@ -94,9 +94,6 @@ class StatementFaithfulnessAnswer(BaseModel):
 class StatementFaithfulnessAnswers(RootModel):
     root: t.List[StatementFaithfulnessAnswer]
 
-    def dicts(self):
-        return self.model_dump()
-
 
 _faithfulness_output_instructions = get_json_format_instructions(
     StatementFaithfulnessAnswers
